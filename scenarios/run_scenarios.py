@@ -3,6 +3,7 @@ import tempfile
 from pathlib import Path
 from core.runtime import Runtime
 from adapters.local import ReadOnlyMCP
+from scenarios.scenario_d import ScenarioDRuntime, scenario_d
 
 
 def scenario_a(db: str):
@@ -31,11 +32,10 @@ def scenario_c(db: str):
 
 def run_all():
     with tempfile.TemporaryDirectory() as td:
-        a = scenario_a(str(Path(td) / "a.sqlite")); c = scenario_c(str(Path(td) / "c.sqlite"))
-    return {"A": a, "B": scenario_b(), "C": c}
+        a = scenario_a(str(Path(td) / "a.sqlite")); c = scenario_c(str(Path(td) / "c.sqlite")); d = scenario_d(str(Path(td) / "d.sqlite"))
+    return {"A": a, "B": scenario_b(), "C": c, "D": d}
 
 
 if __name__ == "__main__":
     import json
     print(json.dumps(run_all(), indent=2))
-

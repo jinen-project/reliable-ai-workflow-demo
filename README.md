@@ -34,9 +34,10 @@ The UI is intentionally small. The CLI is the source of truth:
 PYTHONPATH=. python3 demo.py a   # human approval
 PYTHONPATH=. python3 demo.py b   # read-only MCP-shaped tool
 PYTHONPATH=. python3 demo.py c   # response-loss recovery after restart
+PYTHONPATH=. python3 demo.py d   # AI business-automation recovery
 ```
 
-## Try three scenarios
+## Try four scenarios
 
 ### A — Human approval
 
@@ -50,13 +51,24 @@ A user query calls a synthetic read-only tool and returns stable JSON. No write 
 
 The external action is committed, its response is lost, and the process is closed. A fresh process reads durable state back, verifies the prior action, and prevents duplicate execution.
 
+### D — AI business-automation recovery
+
+Added as a public-job-shaped fixture without assuming a particular CRM, WhatsApp provider, or predictive model. A synthetic inbound request is validated, classified/scored by a deterministic local fixture, routed, written to a mock CRM, sent to a local notification sink, and verified by readback. The scenario injects response loss and resumes after a fresh process; the same action identity prevents a duplicate CRM side effect.
+
+```text
+inbound → validation → reference scoring → routing → mock CRM
+        → local notification → failure → bounded retry → readback → verified
+```
+
+`REFERENCE_SCORING_ONLY = YES`. The client's predictive model, CRM, WhatsApp provider, schemas, credentials, and production acceptance criteria remain unresolved.
+
 ## Break it on purpose
 
-The scenario runner contains a controlled `response_lost` failure. Scenario C is the failure/restart demonstration. The runtime also records duplicate-action blocking and unauthorized approval.
+The scenario runner contains controlled response-loss, timeout, rate-limit, notification-failure, malformed-AI, and duplicate-inbound fixtures. Scenarios C and D demonstrate failure/restart recovery. The runtime also records duplicate-action blocking and unauthorized approval.
 
 ## What is verified vs simulated
 
-Verified locally: authority boundary, read-only capability, durable state, action/readback separation, response-loss recovery, duplicate blocking, audit timeline, and regenerated views.
+Verified locally: authority boundary, read-only capability, durable state, action/readback separation, response-loss recovery, duplicate blocking, audit timeline, regenerated views, deterministic reference classification, mock CRM/notification adapters, bounded retry, ambiguous-result recovery, and process restart recovery.
 
 Simulated: all people, payloads, providers, credentials, business rules, and external systems. This is a reference implementation, not production-ready software, compliance certification, or a universal workflow engine.
 
@@ -70,8 +82,7 @@ Per-client changes are expected for API endpoints, schemas, credentials, busines
 core/       durable runtime and projections
 patterns/   documented reusable patterns (no new primitive)
 adapters/   local MCP-shaped, CRM, and mail boundaries
-scenarios/  three synthetic demonstrations
+scenarios/  four synthetic demonstrations
 ui/         small local viewer
 tests/      executable verification
 ```
-
